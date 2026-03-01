@@ -16,7 +16,6 @@ The model incorporates **financial intuition, structural constraints, and probab
 - Evaluate the model using **financial metrics** (Sharpe ratio, Max Drawdown)
 - Stress test the model under **extreme market conditions**
 
----
 
 ## 🧠 Methodology
 
@@ -26,7 +25,6 @@ The model defines three latent market regimes:
 - **Bear** — falling market
 - **Sideways** — low directional movement
 
----
 
 ### 2. Observed Features (Emissions)
 
@@ -44,7 +42,6 @@ These are mapped to regimes using financial intuition:
 - **Bear:** Low returns, high volatility, oversold RSI  
 - **Sideways:** Medium signals across all indicators  
 
----
 
 ### 3. Transition Model (Custom Constraints)
 
@@ -62,7 +59,6 @@ Example transition structure:
 | Sideways | 0.30 | 0.40     | 0.30 |
 | Bear     | 0.00 | 0.40     | 0.60 |
 
----
 
 ### 4. Constrained Viterbi Decoding
 
@@ -73,7 +69,6 @@ The standard Viterbi algorithm was modified to enforce:
 
 This ensures **stable and interpretable regime paths**.
 
----
 
 ## 📊 Backtesting Strategy
 
@@ -85,7 +80,6 @@ A regime-based trading strategy was constructed:
 
 The strategy was evaluated against a **Buy-and-Hold baseline**.
 
----
 
 ## 📈 Results
 
@@ -99,7 +93,6 @@ The strategy was evaluated against a **Buy-and-Hold baseline**.
 - Substantial reduction in **drawdowns**
 - Stable regime detection across market cycles
 
----
 
 ## 📉 Visualizations
 
@@ -110,7 +103,6 @@ The project includes:
 
 These visualizations show how the model adapts exposure based on detected regimes.
 
----
 
 ## 🧪 Stress Testing
 
@@ -124,7 +116,6 @@ Results:
 - Avoided excessive switching
 - Maintained improved Sharpe and reduced drawdowns
 
----
 
 ## ⚠️ Limitations
 
@@ -133,7 +124,6 @@ Results:
 - Uses **binned features**, which may lose fine-grained signals
 - Evaluated only on **SPY**, limiting generalization
 
----
 
 ## 🚀 Future Improvements
 
@@ -144,7 +134,6 @@ Results:
 - Extend to **Hidden Semi-Markov Models** for variable regime duration
 - Add **transaction costs and slippage modeling**
 
----
 
 ## 🛠️ Tech Stack
 
@@ -154,6 +143,5 @@ Results:
 - Financial indicators (RSI, volatility, returns)
 - Custom HMM implementation
 
----
 
 ## 📂 Project Structure
