@@ -7,7 +7,6 @@ The goal is to identify hidden market states in real time and use them to design
 
 The model incorporates **financial intuition, structural constraints, and probabilistic modeling** to produce stable and realistic regime transitions.
 
----
 
 ## 🎯 Objectives
 
