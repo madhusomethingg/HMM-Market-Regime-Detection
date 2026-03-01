@@ -142,6 +142,3 @@ Results:
 - Matplotlib / Seaborn
 - Financial indicators (RSI, volatility, returns)
 - Custom HMM implementation
-
-
-## 📂 Project Structure
