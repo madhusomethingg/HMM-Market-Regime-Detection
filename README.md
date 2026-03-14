@@ -1,144 +1,154 @@
-# HMM-Based Market Regime Detection for SPY
+# 📉 HMM-Based Market Regime Detection for SPY
+### Identifying Hidden Market States to Build a Risk-Aware Trading Strategy
+
+> A custom Hidden Markov Model that detects Bull, Bear, and Sideways market regimes from SPY price data — and uses those regime signals to build a trading strategy that nearly triples the Sharpe ratio of buy-and-hold.
+
+---
 
 ## 📌 Overview
-This project implements a **Hidden Markov Model (HMM)** to detect latent market regimes — **Bull, Bear, and Sideways** — using historical price data from the SPY (S&P 500 ETF).
 
-The goal is to identify hidden market states in real time and use them to design a **risk-aware trading strategy** that improves risk-adjusted returns compared to a standard buy-and-hold approach.
+Markets don't move in a straight line. They cycle through distinct regimes — trending up, trending down, or going nowhere — and the right strategy in one regime is often the wrong one in another. The problem is that these regimes aren't directly observable. They're hidden.
 
-The model incorporates **financial intuition, structural constraints, and probabilistic modeling** to produce stable and realistic regime transitions.
+This project uses a Hidden Markov Model to infer those latent states from price behavior, with real-world constraints baked into the model to prevent unrealistic regime jumps. The detected regimes then drive a risk-aware allocation strategy that is evaluated against a standard buy-and-hold baseline.
 
+| Goal | Approach |
+|---|---|
+| Detect latent market regimes from price data | Custom HMM with constrained transition matrix |
+| Encode real-world market behavior into the model | No direct Bull↔Bear transitions, minimum 5-day persistence |
+| Use regime signals to improve portfolio performance | Regime-conditional allocation strategy |
+| Evaluate robustness beyond normal conditions | Stress testing under extreme market scenarios |
 
-## 🎯 Objectives
+---
 
-- Detect latent market regimes (Bull, Bear, Sideways)
-- Incorporate **real-world market constraints** into regime transitions
-- Use regime predictions to **improve portfolio performance**
-- Evaluate the model using **financial metrics** (Sharpe ratio, Max Drawdown)
-- Stress test the model under **extreme market conditions**
+## 📂 Dataset
 
+**SPY Historical Price Data (S&P 500 ETF)**
 
-## 🧠 Methodology
+- **File:** `SPY_10y_processed.csv`
+- **Coverage:** 10 years of daily price data
+- **Features engineered:** daily returns, rolling volatility, RSI signal
+
+---
+
+## 🔧 Tech Stack
+
+| Category | Libraries / Tools |
+|----------|-----------|
+| Data Manipulation | `pandas`, `numpy` |
+| Modeling | Custom HMM, Constrained Viterbi decoder |
+| Technical Indicators | RSI, rolling volatility, return bins |
+| Visualization | `matplotlib`, `seaborn` |
+| Notebooks | `Jupyter` |
+
+---
+
+## 🔬 Methodology
 
 ### 1. Hidden States
-The model defines three latent market regimes:
-- **Bull** — rising market
-- **Bear** — falling market
-- **Sideways** — low directional movement
 
+Three latent regimes are defined:
+
+| Regime | Market Character |
+|--------|-----------------|
+| **Bull** | Rising prices, low volatility, momentum building |
+| **Bear** | Falling prices, high volatility, risk-off behavior |
+| **Sideways** | Low directional movement, uncertain conditions |
 
 ### 2. Observed Features (Emissions)
 
-The HMM uses three key financial indicators:
+The HMM observes three engineered features to infer the hidden state:
 
-| Feature | Description |
-|--------|-------------|
-| Return Bin | Low / Medium / High |
-| Volatility Bin | Low / High |
-| RSI Signal | Oversold / Neutral / Overbought |
+| Feature | Bins | Regime Signal |
+|---------|------|---------------|
+| **Return Bin** | Low / Medium / High | High returns → Bull; Low returns → Bear |
+| **Volatility Bin** | Low / High | Low vol → Bull; High vol → Bear |
+| **RSI Signal** | Oversold / Neutral / Overbought | Overbought → Bull; Oversold → Bear |
 
-These are mapped to regimes using financial intuition:
+### 3. Transition Model with Real-World Constraints
 
-- **Bull:** High returns, low volatility, overbought RSI  
-- **Bear:** Low returns, high volatility, oversold RSI  
-- **Sideways:** Medium signals across all indicators  
+A key design choice here: standard HMMs allow any state to transition to any other state, which produces unrealistic regime paths (a market doesn't go from full bull to full bear overnight). This model enforces:
 
+- ❌ No direct **Bull → Bear** or **Bear → Bull** transitions — markets pass through Sideways first
+- ⏳ Minimum **5-day regime persistence** — prevents noisy single-day flips
+- 🔁 High self-transition probabilities — models trend continuation
 
-### 3. Transition Model (Custom Constraints)
-
-To reflect realistic market behavior, the model enforces:
-
-- ❌ No direct **Bull → Bear** or **Bear → Bull** transitions  
-- ⏳ Minimum **5-day regime persistence**
-- 🔁 High self-transition probabilities to model trend continuation
-
-Example transition structure:
-
-| From / To | Bull | Sideways | Bear |
-|----------|------|----------|------|
-| Bull     | 0.70 | 0.30     | 0.00 |
-| Sideways | 0.30 | 0.40     | 0.30 |
-| Bear     | 0.00 | 0.40     | 0.60 |
-
+| From \ To | Bull | Sideways | Bear |
+|-----------|:----:|:--------:|:----:|
+| **Bull** | 0.70 | 0.30 | 0.00 |
+| **Sideways** | 0.30 | 0.40 | 0.30 |
+| **Bear** | 0.00 | 0.40 | 0.60 |
 
 ### 4. Constrained Viterbi Decoding
 
-The standard Viterbi algorithm was modified to enforce:
+The standard Viterbi algorithm was modified to enforce minimum regime duration and disallow incompatible state transitions — producing regime paths that are both statistically optimal and financially interpretable.
 
-- Minimum regime duration constraint
-- Disallowed transitions between incompatible states
+> **Key Design Insight:** Encoding financial domain knowledge directly into the transition matrix and decoder — rather than letting the model learn unconstrained — is what makes the regime paths stable and actionable.
 
-This ensures **stable and interpretable regime paths**.
+### 5. Backtesting Strategy
 
+Detected regimes drive a simple but principled allocation rule:
 
-## 📊 Backtesting Strategy
+| Regime | Portfolio Action |
+|--------|----------------|
+| **Bull** | Fully invested in SPY |
+| **Sideways** | Reduced exposure / neutral |
+| **Bear** | Defensive — cash or minimal exposure |
 
-A regime-based trading strategy was constructed:
+---
 
-- **Bull:** Fully invested in SPY  
-- **Sideways:** Reduced exposure / neutral  
-- **Bear:** Defensive positioning (cash or reduced exposure)
-
-The strategy was evaluated against a **Buy-and-Hold baseline**.
-
-
-## 📈 Results
+## 📊 Key Results
 
 | Strategy | Sharpe Ratio | Max Drawdown |
-|---------|-------------|-------------|
+|----------|:------------:|:------------:|
 | Buy & Hold | 0.73 | 33.72% |
-| HMM Strategy | **1.98** | **10.56%** |
+| **HMM Strategy** | **1.98** | **10.56%** |
 
-### Key Observations
-- Significant improvement in **risk-adjusted returns**
-- Substantial reduction in **drawdowns**
-- Stable regime detection across market cycles
+- Sharpe ratio improved by **~2.7×** over buy-and-hold
+- Maximum drawdown reduced from **33.72% → 10.56%**
+- Stable regime detection across full 10-year period including multiple market cycles
+- Stress tests (simulated March 2020 crash, synthetic volatility spikes) showed stable transitions with no excessive regime switching
 
-
-## 📉 Visualizations
-
-The project includes:
-
-- 📊 **Regime-annotated SPY price chart**
-- 📈 **Equity curve comparison (Strategy vs Buy-and-Hold)**
-
-These visualizations show how the model adapts exposure based on detected regimes.
-
-
-## 🧪 Stress Testing
-
-To evaluate robustness, the model was tested on **extreme market scenarios**:
-
-- Simulated extended crash periods (e.g., March 2020)
-- Injected synthetic volatility spikes
-
-Results:
-- Stable regime transitions
-- Avoided excessive switching
-- Maintained improved Sharpe and reduced drawdowns
-
+---
 
 ## ⚠️ Limitations
 
-- Transition and emission probabilities are **manually defined**
-- Assumes **stationary behavior** across time
-- Uses **binned features**, which may lose fine-grained signals
-- Evaluated only on **SPY**, limiting generalization
+- Transition and emission probabilities are **manually defined** using financial intuition — not learned from data
+- Assumes **stationary behavior** across time; regime dynamics may shift across market cycles
+- Binned features may lose fine-grained signal present in continuous indicators
+- Evaluated only on **SPY** — generalization to other assets is untested
 
+---
 
-## 🚀 Future Improvements
+## 🔮 Future Work
 
-- Learn parameters using **Baum-Welch (EM algorithm)**
-- Introduce **rolling/adaptive transition matrices**
-- Incorporate **macroeconomic features** (interest rates, inflation)
-- Evaluate on multiple assets (**QQQ, IWM, DIA**)
-- Extend to **Hidden Semi-Markov Models** for variable regime duration
-- Add **transaction costs and slippage modeling**
+- **Baum-Welch (EM algorithm)** — learn transition and emission parameters directly from data rather than hand-coding them
+- **Rolling / adaptive transition matrices** — allow regime dynamics to evolve over time rather than staying fixed
+- **Richer feature set** — incorporate macroeconomic indicators (interest rates, inflation, VIX) alongside price-based signals
+- **Multi-asset evaluation** — test on QQQ, IWM, DIA to assess generalization
+- **Hidden Semi-Markov Models** — explicitly model variable regime duration rather than enforcing a hard minimum
+- **Transaction cost modeling** — add slippage and commission to make backtest results more realistic
 
+---
 
-## 🛠️ Tech Stack
+## 🚀 Getting Started
 
-- Python
-- NumPy / Pandas
-- Matplotlib / Seaborn
-- Financial indicators (RSI, volatility, returns)
-- Custom HMM implementation
+```bash
+pip install numpy pandas matplotlib seaborn jupyter
+```
+
+1. Clone the repo
+2. Open `preprocessing.ipynb` to reproduce feature engineering on `SPY_10y_processed.csv`
+3. Open `hmm_template.ipynb` to run the HMM and backtest
+4. The constrained Viterbi decoder lives in `viterbi.py`
+
+---
+
+## 👤 Author
+
+Madhumitha Rajagopal
+
+---
+
+## 📄 License
+
+This project is for educational and research purposes.
